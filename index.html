@@ -10,54 +10,23 @@
     </head>
     <body>
         <div class="container-fluid p-5 bg-primary text-white text-center">
-            <h1>Teścik stronka hehe</h1>
+            <h1>Service reviewing app</h1>
         </div>
 
         <div class="text-center">
-            <button type="button" class="btn btn-primary btn-lg">Show data</button>
+            <button type="button" class="btn btn-primary btn-lg" onclick="location.href = 'load.html'">Submit review</button>
+        </div>
+
+        <div class="text-center">
+          <button type="button" class="btn btn-primary btn-lg" onclick="location.href = 'index.html'">Check providers</button>
         </div>
 
         <div class="container mt-3">
             <div class="text-center">
-                <h2>Add a review</h2>
+                <h2>Providers</h2>
             </div>
-            <form action="/action_page.php">
-              <div class="mb-3 mt-3">
-                <label for="service provider id">Service provider:</label>
-                <select class="list-group" id="choicesList">
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="user login">User login:</label>
-                <input type="text" class="form-control" id="user login" placeholder="Enter your user login" name="user login">
-              </div>
-              <div class="mb-3">
-                <label for="review title">Review title:</label>
-                <input type="text" class="form-control" id="review title" placeholder="Enter title" name="review title">
-              </div>
-              <div class="mb-3">
-                <label for="comment">Comment:</label>
-                <input type="text" class="form-control" id="comment" placeholder="Enter comment" name="comment">
-              </div>
-              <div class="mb-3">
-                <label for="rating">Rating (1-5):</label>
-                  <input type="radio" id="star5" name="rating" value="5" />
-                  <label for="star5" title="5 stars"></label>
-                  <input type="radio" id="star4" name="rating" value="4" />
-                  <label for="star4" title="4 stars"></label>
-                  <input type="radio" id="star3" name="rating" value="3" />
-                  <label for="star3" title="3 stars"></label>
-                  <input type="radio" id="star2" name="rating" value="2" />
-                  <label for="star2" title="2 stars"></label>
-                  <input type="radio" id="star1" name="rating" value="1" />
-                  <label for="star1" title="1 star"></label>
-                </div>
-              </div>
-              <div class="text-center">
-                <button type="submit" class="btn btn-primary">Submit</button>
-              </div>
-            </form>
           </div>
+        
 
         <script type="module">
             // Import the functions you need from the SDKs you need
@@ -67,7 +36,7 @@
             
             // Firestore
             import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
-            import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
+            import { collection, getDocs, query, where, doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
           
             // Your web app's Firebase configuration
             const firebaseConfig = {
@@ -89,15 +58,68 @@
             // Read data
             const querySnapshot = await getDocs(collection(db, "uslugodawcy"));
 
+            var i = 0
             querySnapshot.forEach((doc) => {
-                console.log(doc.data());
-                console.log(doc.data()['nazwa']);
-                const choices = document.getElementById("choicesList")
-                const option = document.createElement("option")
-                option.text = doc.data()['nazwa']
-                choices.add(option)
+                const div = document.createElement("div");
+                div.setAttribute("id", `providers${i}`);
+                document.body.appendChild(div);
+                const name = document.createElement("h3");
+                name.innerText = doc.data()['nazwa'];
+                document.getElementById(`providers${i}`).appendChild(name);
+                const address = document.createElement("h5");
+                address.innerText = "Address: " + doc.data()['adres'];
+                document.getElementById(`providers${i}`).appendChild(address);
+                const rating = document.createElement("h5");
+                rating.innerText = "Average rating: " + doc.data()['ocena'];
+                document.getElementById(`providers${i}`).appendChild(rating);
+                const telephone = document.createElement("h5");
+                telephone.innerText = "Telephone number: " + doc.data()['telefon'];
+                document.getElementById(`providers${i}`).appendChild(telephone);
+                const owner = document.createElement("h5");
+                owner.innerText = "Owner: " + doc.data()['wlasciciel'];
+                document.getElementById(`providers${i}`).appendChild(owner);
+                const reviewButton = document.createElement("button");
+                reviewButton.innerText = "Show reviews";
+                reviewButton.setAttribute("id", i)
+                document.getElementById(`providers${i}`).appendChild(reviewButton);
+                i++
             });
 
+            var elem = document.getElementsByTagName('button');
+            for(var i = 2; i < elem.length; i++) {
+            elem[i].addEventListener('click', showReviews)}
+
+            var j = 0
+
+            async function showReviews(){
+              var buttonPressed = event.currentTarget.id;
+              const coll = document.getElementsByTagName("h3");
+              const provider = coll[buttonPressed].innerHTML
+
+              const q = query(collection(db, "uslugodawcy"), where ("nazwa", "==", provider));
+              const querySnapshot1 = await getDocs(q);
+              const checkProvider = querySnapshot.docs[buttonPressed].id
+
+              const querySnapshot2 = await getDocs(collection(db, `uslugodawcy/${checkProvider}/recenzje`));
+
+              querySnapshot2.forEach((doc) => {
+                const div = document.createElement("div");
+                document.getElementById(`providers${buttonPressed}`).appendChild(div)
+                const title = document.createElement("h4");
+                title.innerText = doc.data()['tytul']
+                document.getElementById(`providers${buttonPressed}`).appendChild(title)
+                const login = document.createElement("h5");
+                login.innerText = "Login: " + doc.data()['login']
+                document.getElementById(`providers${buttonPressed}`).appendChild(login)
+                const score = document.createElement("h5");
+                score.innerText = "Score: " + doc.data()['ocena']
+                document.getElementById(`providers${buttonPressed}`).appendChild(score)
+                const comment = document.createElement("h5");
+                comment.innerText = "Comment: " + doc.data()['komentarz']
+                document.getElementById(`providers${buttonPressed}`).appendChild(comment)
+                j++
+              })
+          }
         </script>
     </body>
 </html>

@@ -1,0 +1,128 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="container-fluid p-5 bg-primary text-white text-center">
+            <h1>Service reviewing app</h1>
+        </div>
+
+        <div class="text-center">
+            <button type="button" class="btn btn-primary btn-lg" onclick="location.href = 'load.html'">Submit review</button>
+        </div>
+
+        <div class="text-center">
+          <button type="button" class="btn btn-primary btn-lg" onclick="location.href = 'index.html'">Check providers</button>
+        </div>
+
+        <div class="container mt-3">
+            <div class="text-center">
+                <h2>Add a review</h2>
+            </div>
+            <form id="forma">
+              <div class="mb-3 mt-3">
+                <label for="service provider id">Service provider:</label>
+                <select class="list-group" id="choicesList"></select>
+              </div>
+              <div class="mb-3">
+                <label for="login">User login:</label>
+                <input type="text" class="form-control" id="login" placeholder="Enter your user login" name="login" required>
+              </div>
+              <div class="mb-3">
+                <label for="title">Review title:</label>
+                <input type="text" class="form-control" id="title" placeholder="Enter title" name="title" required>
+              </div>
+              <div class="mb-3">
+                <label for="comment">Comment:</label>
+                <input type="text" class="form-control" id="comment" placeholder="Enter comment" name="comment" required>
+              </div>
+              <div class="mb-3">
+                <label for="rating">Rating (1-5):</label>
+                  <input type="radio" id="star5" name="rating" value="1" />
+                  <label for="star5" title="5 stars">1</label>
+                  <input type="radio" id="star4" name="rating" value="2" />
+                  <label for="star4" title="4 stars">2</label>
+                  <input type="radio" id="star3" name="rating" value="3" />
+                  <label for="star3" title="3 stars">3</label>
+                  <input type="radio" id="star2" name="rating" value="4" />
+                  <label for="star2" title="2 stars">4</label>
+                  <input type="radio" id="star1" name="rating" value="5" checked/>
+                  <label for="star1" title="1 star">5</label>
+                </div>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </div>
+            </form>
+          </div>
+
+        <script type="module">
+            // Import the functions you need from the SDKs you need
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"
+            // TODO: Add SDKs for Firebase products that you want to use
+            // https://firebase.google.com/docs/web/setup#available-libraries
+            
+            // Firestore
+            import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
+            import { collection, getDocs, query, where, doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
+          
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+              apiKey: "AIzaSyAbrtDF7MTzS74CNn4eb1_VuKUNGzaymKg",
+              authDomain: "projekt-3ee09.firebaseapp.com",
+              projectId: "projekt-3ee09",
+              storageBucket: "projekt-3ee09.appspot.com",
+              messagingSenderId: "909133202167",
+              appId: "1:909133202167:web:0adfe7a95ee82bf74009f2",
+              measurementId: "G-RDTB8MZDRE"
+              };
+          
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+
+            // Initialize Cloud Firestore and get a reference to the service
+            const db = getFirestore(app);
+
+            // Read data
+            const querySnapshot = await getDocs(collection(db, "uslugodawcy"));
+
+            querySnapshot.forEach((doc) => {
+                const choices = document.getElementById("choicesList");
+                const option = document.createElement("option");
+                option.text = doc.data()['nazwa'];
+                option.setAttribute("value", doc.data()['nazwa'])
+                choices.add(option);
+            });
+            
+            document.getElementById("forma").addEventListener("submit", sendtoFirestore);
+
+            async function sendtoFirestore(event){
+              event.preventDefault();
+              const form = event.target;
+              const provider = form.choicesList.value;
+              const login = form.login.value;
+              const title = form.title.value;
+              const comment = form.comment.value;
+              const rating = form.rating.value;
+
+              const q = query(collection(db, "uslugodawcy"), where ("nazwa", "==", provider));
+              const querySnapshot = await getDocs(q);
+              const checkProvider = querySnapshot.docs[0].id
+
+              setDoc(doc(db, `uslugodawcy/${checkProvider}/recenzje`, `${title}`), {
+              login: login,
+              tytuł: title,
+              komentarz: comment,
+              ocena: rating,
+           });
+           form.reset();
+          }
+        </script>
+    </body>
+</html>
